@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vigenère Cipher Expert Suite</title>
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --secondary-color: #2196F3;
+            --background-color: #1a1a1a;
+            --text-color: #ffffff;
+            --input-background: #2d2d2d;
+        }
+
+        body {
+            font-family: 'Consolas', monospace;
+            line-height: 1.6;
+            color: var(--text-color);
+            background: var(--background-color);
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .container {
+            background: #252525;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.2em;
+        }
+
+        .toolbar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            background: var(--input-background);
+            border: 1px solid #3d3d3d;
+            color: var(--text-color);
+            border-radius: 4px;
+            font-size: 16px;
+            margin-bottom: 15px;
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        button {
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .analysis-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #2d2d2d;
+            border-radius: 4px;
+        }
+
+        .frequency-chart {
+            display: flex;
+            height: 150px;
+            align-items: flex-end;
+            margin: 20px 0;
+            gap: 2px;
+        }
+
+        .frequency-bar {
+            flex: 1;
+            background: var(--primary-color);
+            transition: height 0.3s;
+            position: relative;
+        }
+
+        .frequency-bar.english {
+            background: var(--secondary-color);
+            opacity: 0.7;
+        }
+
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .analysis-card {
+            background: #333;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+
+        .key-length-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            background: #4CAF50;
+            border-radius: 15px;
+            margin: 5px;
+            cursor: help;
+        }
+
+        .highlight {
+            background: #4CAF5055;
+            padding: 2px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: #252525;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .shift-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 5px;
+            margin: 10px 0;
+        }
+
+        .shift-option {
+            padding: 8px;
+            background: #3d3d3d;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .shift-option:hover {
+            background: var(--secondary-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔓 Vigenère Cipher Expert Suite</h1>
+        
+        <div class="toolbar">
+            <input type="text" id="key" placeholder="Enter key here..." style="flex-grow:1">
+            <button onclick="encrypt()" title="Encrypt text with current key">Encrypt</button>
+            <button onclick="decrypt()" title="Decrypt text with current key">Decrypt</button>
+        </div>
+
+        <textarea id="input" placeholder="Enter text here...">THEQUICKBROWNFOXJUMPSOVERTHELAZYDOG</textarea>
+        
+        <div class="toolbar">
+            <button onclick="autoAnalyze()" title="Full automatic analysis">Auto Analyze</button>
+            <button onclick="showDetailedKasiski()" title="Show Kasiski method details">Kasiski Details</button>
+            <button onclick="showFrequencyAnalysis()">Frequency Analysis</button>
+            <button onclick="showFullDecryptionGrid()">Full Decryption Grid</button>
+        </div>
+
+        <div class="analysis-section" id="mainResults">
+            <h3>🔍 Analysis Results</h3>
+            <div id="kasiskiResults" class="analysis-card"></div>
+            <div id="frequencyAnalysis" class="analysis-card"></div>
+            <div id="decryptionResults"></div>
+        </div>
+    </div>
+
+    <!-- Detailed Kasiski Modal -->
+    <div id="kasiskiModal" class="modal">
+        <div class="modal-content">
+            <h3>🔎 Detailed Kasiski Examination</h3>
+            <div id="kasiskiDetails"></div>
+            <button onclick="closeModal()">Close</button>
+        </div>
+    </div>
+
+    <!-- Full Decryption Grid Modal -->
+    <div id="decryptionModal" class="modal">
+        <div class="modal-content">
+            <h3>🔑 Full Decryption Grid</h3>
+            <div id="fullDecryptionGrid"></div>
+            <button onclick="closeModal()">Close</button>
+        </div>
+    </div>
+
+    <script>
+        const ENGLISH_FREQ = {
+            'A': 8.167, 'B': 1.492, 'C': 2.782, 'D': 4.253, 'E': 12.702,
+            'F': 2.228, 'G': 2.015, 'H': 6.094, 'I': 6.966, 'J': 0.153,
+            'K': 0.772, 'L': 4.025, 'M': 2.406, 'N': 6.749, 'O': 7.507,
+            'P': 1.929, 'Q': 0.095, 'R': 5.987, 'S': 6.327, 'T': 9.056,
+            'U': 2.758, 'V': 0.978, 'W': 2.360, 'X': 0.150, 'Y': 1.974, 'Z': 0.074
+        };
+
+        function prepareText(text) {
+            return text.toUpperCase().replace(/[^A-Z]/g, '');
+        }
+
+        function vigenere(text, key, encrypt = true) {
+            text = prepareText(text);
+            key = prepareText(key);
+            let result = '';
+            
+            for (let i = 0; i < text.length; i++) {
+                const textChar = text.charCodeAt(i) - 65;
+                const keyChar = key.charCodeAt(i % key.length) - 65;
+                
+                let processedChar = encrypt ? 
+                    (textChar + keyChar) % 26 : 
+                    (textChar - keyChar + 26) % 26;
+                
+                result += String.fromCharCode(processedChar + 65);
+            }
+            return result;
+        }
+
+        function encrypt() {
+            const text = document.getElementById('input').value;
+            const key = document.getElementById('key').value;
+            document.getElementById('input').value = vigenere(text, key, true);
+        }
+
+        function decrypt() {
+            const text = document.getElementById('input').value;
+            const key = document.getElementById('key').value;
+            document.getElementById('input').value = vigenere(text, key, false);
+        }
+
+        // Enhanced Kasiski Examination
+        function detailedKasiski(ciphertext) {
+            const trigrams = {};
+            for (let i = 0; i < ciphertext.length - 2; i++) {
+                const trigram = ciphertext.substr(i, 3);
+                if (!trigrams[trigram]) trigrams[trigram] = [];
+                trigrams[trigram].push(i);
+            }
+
+            const validTrigrams = Object.entries(trigrams)
+                .filter(([_, positions]) => positions.length > 1)
+                .sort((a, b) => b[1].length - a[1].length);
+
+            const distances = [];
+            validTrigrams.forEach(([tg, positions]) => {
+                for (let i = 1; i < positions.length; i++) {
+                    const dist = positions[i] - positions[i-1];
+                    distances.push({ trigram: tg, distance: dist });
+                }
+            });
+
+            const factorCounts = {};
+            distances.forEach(({ distance }) => {
+                for (let i = 2; i <= distance; i++) {
+                    if (distance % i === 0) {
+                        factorCounts[i] = (factorCounts[i] || 0) + 1;
+                    }
+                }
+            });
+
+            const probableLengths = Object.entries(factorCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5)
+                .map(([length]) => parseInt(length));
+
+            return {
+                trigrams: validTrigrams,
+                distances,
+                factorCounts,
+                probableLengths
+            };
+        }
+
+        function showDetailedKasiski() {
+            const ciphertext = prepareText(document.getElementById('input').value);
+            const analysis = detailedKasiski(ciphertext);
+            
+            let html = `<h4>Found Repeating Trigrams:</h4>`;
+            html += analysis.trigrams.map(([tg, positions]) => 
+                `<div class="highlight">${tg}: ${positions.join(', ')}</div>`
+            ).join('');
+
+            html += `<h4>Distances Between Repeats:</h4>`;
+            html += analysis.distances.map(d => 
+                `${d.trigram}: ${d.distance}`
+            ).join('<br>');
+
+            html += `<h4>Factor Counts:</h4>`;
+            html += Object.entries(analysis.factorCounts)
+                .sort((a, b) => b[1] - a[1])
+                .map(([factor, count]) => 
+                    `Factor ${factor}: ${count} occurrences`
+                ).join('<br>');
+
+            html += `<h4>Probable Key Lengths:</h4>`;
+            html += analysis.probableLengths.map(l => 
+                `<span class="key-length-badge" title="Click to test this length">${l}</span>`
+            ).join(' ');
+
+            document.getElementById('kasiskiDetails').innerHTML = html;
+            document.getElementById('kasiskiModal').style.display = 'flex';
+        }
+
+        // Enhanced Frequency Analysis
+        function showFrequencyAnalysis() {
+            const ciphertext = prepareText(document.getElementById('input').value);
+            const freq = frequencyAnalysis(ciphertext);
+            
+            const maxFreq = Math.max(...freq, ...Object.values(ENGLISH_FREQ));
+            const chart = document.getElementById('frequencyAnalysis');
+            
+            chart.innerHTML = `
+                <h4>Frequency Analysis (Blue = Cipher, Green = English)</h4>
+                <div class="frequency-chart">
+                    ${freq.map((f, i) => `
+                        <div class="frequency-bar" style="height: ${(f/maxFreq)*100}%">
+                            <div class="frequency-bar english" style="height: ${(ENGLISH_FREQ[String.fromCharCode(65+i)]/maxFreq)*100}%"></div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="legend">
+                    <span style="color: var(--primary-color)">■ Cipher Text</span>
+                    <span style="color: var(--secondary-color)">■ English</span>
+                </div>
+            `;
+        }
+
+        // Full Decryption Grid
+        function showFullDecryptionGrid() {
+            const ciphertext = prepareText(document.getElementById('input').value);
+            const keyLength = parseInt(prompt('Enter key length to test:'));
+            if (!keyLength) return;
+
+            let html = `<h4>Possible Shifts for Key Length ${keyLength}</h4>`;
+            
+            for (let pos = 0; pos < keyLength; pos++) {
+                const chars = ciphertext.split('').filter((_, i) => i % keyLength === pos);
+                html += `<div class="analysis-card">
+                    <h5>Position ${pos + 1}</h5>
+                    <div class="shift-grid">${generateShiftOptions(chars, pos)}</div>
+                </div>`;
+            }
+
+            document.getElementById('fullDecryptionGrid').innerHTML = html;
+            document.getElementById('decryptionModal').style.display = 'flex';
+        }
+
+        function generateShiftOptions(chars, position) {
+            return Array.from({length: 26}, (_, shift) => {
+                const decrypted = chars.map(c => 
+                    String.fromCharCode((c.charCodeAt(0) - 65 - shift + 26) % 26 + 65)
+                ).join('');
+                
+                return `
+                    <div class="shift-option" onclick="updateKeyPosition(${position}, ${shift})" 
+                         title="Shift ${shift}: ${decrypted.substr(0, 15)}...">
+                        ${shift}: ${decrypted.substr(0, 5)}...
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateKeyPosition(position, shift) {
+            const key = document.getElementById('key').value.padEnd(position + 1, 'A');
+            const newKey = key.substr(0, position) + 
+                         String.fromCharCode(65 + shift) + 
+                         key.substr(position + 1);
+            document.getElementById('key').value = newKey;
+        }
+
+        // Common Functions
+        function frequencyAnalysis(text) {
+            const freq = Array(26).fill(0);
+            text.split('').forEach(c => freq[c.charCodeAt(0)-65]++);
+            return freq.map(count => (count / text.length) * 100);
+        }
+
+        function closeModal() {
+            document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+        }
+
+        // Initialize
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('key-length-badge')) {
+                const len = e.target.textContent;
+                document.getElementById('key').value = 'A'.repeat(len);
+                showFullDecryptionGrid();
+            }
+        });
+    </script>
+</body>
+</html>
