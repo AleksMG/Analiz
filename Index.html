@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vigenère Cipher Expert Suite</title>
+    <title>Vigenère Cipher Expert</title>
     <style>
         :root {
             --primary-color: #4CAF50;
@@ -100,19 +100,6 @@
             opacity: 0.7;
         }
 
-        .analysis-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-        }
-
-        .analysis-card {
-            background: #333;
-            padding: 15px;
-            border-radius: 6px;
-            margin: 10px 0;
-        }
-
         .key-length-badge {
             display: inline-block;
             padding: 5px 10px;
@@ -120,11 +107,6 @@
             border-radius: 15px;
             margin: 5px;
             cursor: help;
-        }
-
-        .highlight {
-            background: #4CAF5055;
-            padding: 2px;
         }
 
         .modal {
@@ -171,56 +153,43 @@
 </head>
 <body>
     <div class="container">
-        <h1>🔓 Vigenère Cipher Expert Suite</h1>
+        <h1>🔓 Vigenère Cipher Expert</h1>
         
         <div class="toolbar">
-            <input type="text" id="key" placeholder="Enter key here..." style="flex-grow:1">
-            <button onclick="encrypt()" title="Encrypt text with current key">Encrypt</button>
-            <button onclick="decrypt()" title="Decrypt text with current key">Decrypt</button>
+            <input type="text" id="key" placeholder="Enter key..." style="flex-grow:1">
+            <button onclick="encrypt()">Encrypt</button>
+            <button onclick="decrypt()">Decrypt</button>
         </div>
 
         <textarea id="input" placeholder="Enter text here...">THEQUICKBROWNFOXJUMPSOVERTHELAZYDOG</textarea>
         
         <div class="toolbar">
-            <button onclick="autoAnalyze()" title="Full automatic analysis">Auto Analyze</button>
-            <button onclick="showDetailedKasiski()" title="Show Kasiski method details">Kasiski Details</button>
+            <button onclick="autoAnalyze()">Auto Analyze</button>
+            <button onclick="showKasiskiDetails()">Kasiski Method</button>
             <button onclick="showFrequencyAnalysis()">Frequency Analysis</button>
-            <button onclick="showFullDecryptionGrid()">Full Decryption Grid</button>
+            <button onclick="showDecryptionGrid()">Decryption Grid</button>
         </div>
 
-        <div class="analysis-section" id="mainResults">
-            <h3>🔍 Analysis Results</h3>
-            <div id="kasiskiResults" class="analysis-card"></div>
-            <div id="frequencyAnalysis" class="analysis-card"></div>
-            <div id="decryptionResults"></div>
+        <div class="analysis-section" id="results">
+            <div id="kasiskiResults"></div>
+            <div id="frequencyAnalysis"></div>
         </div>
     </div>
 
-    <!-- Detailed Kasiski Modal -->
-    <div id="kasiskiModal" class="modal">
+    <div id="modal" class="modal">
         <div class="modal-content">
-            <h3>🔎 Detailed Kasiski Examination</h3>
-            <div id="kasiskiDetails"></div>
-            <button onclick="closeModal()">Close</button>
-        </div>
-    </div>
-
-    <!-- Full Decryption Grid Modal -->
-    <div id="decryptionModal" class="modal">
-        <div class="modal-content">
-            <h3>🔑 Full Decryption Grid</h3>
-            <div id="fullDecryptionGrid"></div>
-            <button onclick="closeModal()">Close</button>
+            <div id="modalContent"></div>
+            <button onclick="closeModal()" style="margin-top:15px">Close</button>
         </div>
     </div>
 
     <script>
         const ENGLISH_FREQ = {
-            'A': 8.167, 'B': 1.492, 'C': 2.782, 'D': 4.253, 'E': 12.702,
-            'F': 2.228, 'G': 2.015, 'H': 6.094, 'I': 6.966, 'J': 0.153,
-            'K': 0.772, 'L': 4.025, 'M': 2.406, 'N': 6.749, 'O': 7.507,
-            'P': 1.929, 'Q': 0.095, 'R': 5.987, 'S': 6.327, 'T': 9.056,
-            'U': 2.758, 'V': 0.978, 'W': 2.360, 'X': 0.150, 'Y': 1.974, 'Z': 0.074
+            'A':8.167, 'B':1.492, 'C':2.782, 'D':4.253, 'E':12.702,
+            'F':2.228, 'G':2.015, 'H':6.094, 'I':6.966, 'J':0.153,
+            'K':0.772, 'L':4.025, 'M':2.406, 'N':6.749, 'O':7.507,
+            'P':1.929, 'Q':0.095, 'R':5.987, 'S':6.327, 'T':9.056,
+            'U':2.758, 'V':0.978, 'W':2.360, 'X':0.150, 'Y':1.974, 'Z':0.074
         };
 
         function prepareText(text) {
@@ -228,194 +197,170 @@
         }
 
         function vigenere(text, key, encrypt = true) {
-            text = prepareText(text);
-            key = prepareText(key);
+            const cleanText = prepareText(text);
+            const cleanKey = prepareText(key);
             let result = '';
             
-            for (let i = 0; i < text.length; i++) {
-                const textChar = text.charCodeAt(i) - 65;
-                const keyChar = key.charCodeAt(i % key.length) - 65;
-                
-                let processedChar = encrypt ? 
+            for(let i = 0; i < cleanText.length; i++) {
+                const textChar = cleanText.charCodeAt(i) - 65;
+                const keyChar = cleanKey.charCodeAt(i % cleanKey.length) - 65;
+                const processedChar = encrypt ? 
                     (textChar + keyChar) % 26 : 
                     (textChar - keyChar + 26) % 26;
-                
                 result += String.fromCharCode(processedChar + 65);
             }
             return result;
         }
 
         function encrypt() {
-            const text = document.getElementById('input').value;
-            const key = document.getElementById('key').value;
-            document.getElementById('input').value = vigenere(text, key, true);
+            try {
+                const text = document.getElementById('input').value;
+                const key = document.getElementById('key').value;
+                document.getElementById('input').value = vigenere(text, key, true);
+            } catch(e) {
+                alert('Encryption error: ' + e.message);
+            }
         }
 
         function decrypt() {
-            const text = document.getElementById('input').value;
-            const key = document.getElementById('key').value;
-            document.getElementById('input').value = vigenere(text, key, false);
+            try {
+                const text = document.getElementById('input').value;
+                const key = document.getElementById('key').value;
+                document.getElementById('input').value = vigenere(text, key, false);
+            } catch(e) {
+                alert('Decryption error: ' + e.message);
+            }
         }
 
-        // Enhanced Kasiski Examination
-        function detailedKasiski(ciphertext) {
+        function kasiskiAnalysis(ciphertext) {
             const trigrams = {};
-            for (let i = 0; i < ciphertext.length - 2; i++) {
+            for(let i = 0; i < ciphertext.length - 2; i++) {
                 const trigram = ciphertext.substr(i, 3);
-                if (!trigrams[trigram]) trigrams[trigram] = [];
-                trigrams[trigram].push(i);
+                trigrams[trigram] = (trigrams[trigram] || []).concat(i);
             }
 
-            const validTrigrams = Object.entries(trigrams)
-                .filter(([_, positions]) => positions.length > 1)
-                .sort((a, b) => b[1].length - a[1].length);
-
             const distances = [];
-            validTrigrams.forEach(([tg, positions]) => {
-                for (let i = 1; i < positions.length; i++) {
-                    const dist = positions[i] - positions[i-1];
-                    distances.push({ trigram: tg, distance: dist });
-                }
-            });
-
-            const factorCounts = {};
-            distances.forEach(({ distance }) => {
-                for (let i = 2; i <= distance; i++) {
-                    if (distance % i === 0) {
-                        factorCounts[i] = (factorCounts[i] || 0) + 1;
+            Object.entries(trigrams).forEach(([tg, positions]) => {
+                if(positions.length > 1) {
+                    for(let i = 1; i < positions.length; i++) {
+                        distances.push(positions[i] - positions[i-1]);
                     }
                 }
             });
 
-            const probableLengths = Object.entries(factorCounts)
+            const factors = {};
+            distances.forEach(d => {
+                for(let i = 2; i <= d; i++) {
+                    if(d % i === 0) factors[i] = (factors[i] || 0) + 1;
+                }
+            });
+
+            return Object.entries(factors)
                 .sort((a, b) => b[1] - a[1])
                 .slice(0, 5)
                 .map(([length]) => parseInt(length));
-
-            return {
-                trigrams: validTrigrams,
-                distances,
-                factorCounts,
-                probableLengths
-            };
         }
 
-        function showDetailedKasiski() {
+        function showKasiskiDetails() {
             const ciphertext = prepareText(document.getElementById('input').value);
-            const analysis = detailedKasiski(ciphertext);
+            const lengths = kasiskiAnalysis(ciphertext);
             
-            let html = `<h4>Found Repeating Trigrams:</h4>`;
-            html += analysis.trigrams.map(([tg, positions]) => 
-                `<div class="highlight">${tg}: ${positions.join(', ')}</div>`
-            ).join('');
-
-            html += `<h4>Distances Between Repeats:</h4>`;
-            html += analysis.distances.map(d => 
-                `${d.trigram}: ${d.distance}`
-            ).join('<br>');
-
-            html += `<h4>Factor Counts:</h4>`;
-            html += Object.entries(analysis.factorCounts)
-                .sort((a, b) => b[1] - a[1])
-                .map(([factor, count]) => 
-                    `Factor ${factor}: ${count} occurrences`
-                ).join('<br>');
-
-            html += `<h4>Probable Key Lengths:</h4>`;
-            html += analysis.probableLengths.map(l => 
-                `<span class="key-length-badge" title="Click to test this length">${l}</span>`
-            ).join(' ');
-
-            document.getElementById('kasiskiDetails').innerHTML = html;
-            document.getElementById('kasiskiModal').style.display = 'flex';
+            let html = `<h3>Kasiski Examination Results</h3>
+                      <p>Probable key lengths:</p>
+                      <div style="margin:10px 0">`;
+            
+            lengths.forEach(len => {
+                html += `<span class="key-length-badge" onclick="testKeyLength(${len})">${len}</span> `;
+            });
+            
+            html += `</div><p>Click length to test in decryption grid</p>`;
+            
+            document.getElementById('modalContent').innerHTML = html;
+            document.getElementById('modal').style.display = 'flex';
         }
 
-        // Enhanced Frequency Analysis
+        function testKeyLength(length) {
+            document.getElementById('key').value = 'A'.repeat(length);
+            showDecryptionGrid();
+        }
+
         function showFrequencyAnalysis() {
             const ciphertext = prepareText(document.getElementById('input').value);
             const freq = frequencyAnalysis(ciphertext);
-            
             const maxFreq = Math.max(...freq, ...Object.values(ENGLISH_FREQ));
-            const chart = document.getElementById('frequencyAnalysis');
             
-            chart.innerHTML = `
-                <h4>Frequency Analysis (Blue = Cipher, Green = English)</h4>
-                <div class="frequency-chart">
-                    ${freq.map((f, i) => `
-                        <div class="frequency-bar" style="height: ${(f/maxFreq)*100}%">
-                            <div class="frequency-bar english" style="height: ${(ENGLISH_FREQ[String.fromCharCode(65+i)]/maxFreq)*100}%"></div>
-                        </div>
-                    `).join('')}
-                </div>
-                <div class="legend">
-                    <span style="color: var(--primary-color)">■ Cipher Text</span>
-                    <span style="color: var(--secondary-color)">■ English</span>
-                </div>
-            `;
+            let html = `<h3>Frequency Analysis</h3>
+                      <div class="frequency-chart">`;
+            
+            for(let i = 0; i < 26; i++) {
+                const letter = String.fromCharCode(65 + i);
+                html += `<div class="frequency-bar" style="height:${(freq[i]/maxFreq)*100}%">
+                        <div class="frequency-bar english" style="height:${(ENGLISH_FREQ[letter]/maxFreq)*100}%"></div>
+                      </div>`;
+            }
+            
+            html += `</div><div style="margin-top:15px">
+                      <span style="color:var(--primary-color)">■ Cipher Text</span>
+                      <span style="color:var(--secondary-color)">■ English</span>
+                    </div>`;
+            
+            document.getElementById('modalContent').innerHTML = html;
+            document.getElementById('modal').style.display = 'flex';
         }
 
-        // Full Decryption Grid
-        function showFullDecryptionGrid() {
+        function frequencyAnalysis(text) {
+            const counts = Array(26).fill(0);
+            text.split('').forEach(c => counts[c.charCodeAt(0)-65]++);
+            return counts.map(c => (c / text.length) * 100);
+        }
+
+        function showDecryptionGrid() {
             const ciphertext = prepareText(document.getElementById('input').value);
-            const keyLength = parseInt(prompt('Enter key length to test:'));
-            if (!keyLength) return;
-
-            let html = `<h4>Possible Shifts for Key Length ${keyLength}</h4>`;
+            const keyLength = document.getElementById('key').value.length || 1;
             
-            for (let pos = 0; pos < keyLength; pos++) {
-                const chars = ciphertext.split('').filter((_, i) => i % keyLength === pos);
-                html += `<div class="analysis-card">
-                    <h5>Position ${pos + 1}</h5>
-                    <div class="shift-grid">${generateShiftOptions(chars, pos)}</div>
-                </div>`;
+            let html = `<h3>Decryption Grid (Key Length: ${keyLength})</h3>`;
+            
+            for(let pos = 0; pos < keyLength; pos++) {
+                const chars = ciphertext.split('').filter((_,i) => i % keyLength === pos);
+                html += `<div style="margin:20px 0">
+                          <h4>Position ${pos + 1}</h4>
+                          <div class="shift-grid">${generateShiftOptions(chars, pos)}</div>
+                        </div>`;
             }
-
-            document.getElementById('fullDecryptionGrid').innerHTML = html;
-            document.getElementById('decryptionModal').style.display = 'flex';
+            
+            document.getElementById('modalContent').innerHTML = html;
+            document.getElementById('modal').style.display = 'flex';
         }
 
         function generateShiftOptions(chars, position) {
-            return Array.from({length: 26}, (_, shift) => {
+            return Array.from({length:26}, (_, shift) => {
                 const decrypted = chars.map(c => 
-                    String.fromCharCode((c.charCodeAt(0) - 65 - shift + 26) % 26 + 65)
+                    String.fromCharCode((c.charCodeAt(0) - 65 - shift + 26) % 26 + 65
                 ).join('');
                 
-                return `
-                    <div class="shift-option" onclick="updateKeyPosition(${position}, ${shift})" 
-                         title="Shift ${shift}: ${decrypted.substr(0, 15)}...">
-                        ${shift}: ${decrypted.substr(0, 5)}...
-                    </div>
-                `;
+                return `<div class="shift-option" onclick="updateKey(${position},${shift})" 
+                          title="Shift ${shift}: ${decrypted.substr(0,15)}...">
+                    ${shift.toString().padStart(2,'0')}: ${decrypted.substr(0,5)}...
+                </div>`;
             }).join('');
         }
 
-        function updateKeyPosition(position, shift) {
-            const key = document.getElementById('key').value.padEnd(position + 1, 'A');
-            const newKey = key.substr(0, position) + 
-                         String.fromCharCode(65 + shift) + 
-                         key.substr(position + 1);
-            document.getElementById('key').value = newKey;
-        }
-
-        // Common Functions
-        function frequencyAnalysis(text) {
-            const freq = Array(26).fill(0);
-            text.split('').forEach(c => freq[c.charCodeAt(0)-65]++);
-            return freq.map(count => (count / text.length) * 100);
+        function updateKey(position, shift) {
+            const currentKey = prepareText(document.getElementById('key').value);
+            const newKey = currentKey.split('');
+            newKey[position] = String.fromCharCode(65 + shift);
+            document.getElementById('key').value = newKey.join('').padEnd(position+1, 'A');
         }
 
         function closeModal() {
-            document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+            document.getElementById('modal').style.display = 'none';
         }
 
-        // Initialize
-        document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('key-length-badge')) {
-                const len = e.target.textContent;
-                document.getElementById('key').value = 'A'.repeat(len);
-                showFullDecryptionGrid();
-            }
-        });
+        function autoAnalyze() {
+            showKasiskiDetails();
+            showFrequencyAnalysis();
+            setTimeout(showDecryptionGrid, 300);
+        }
     </script>
 </body>
 </html>
