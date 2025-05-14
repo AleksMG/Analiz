@@ -3,836 +3,537 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Vigenère Cipher Decoder</title>
+    <title>CryptoVision - Advanced Vigenère Analysis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #4f46e5;
+            --accent: #ef4444;
+            --background: #f8fafc;
+            --text: #1e293b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', sans-serif;
+            background: var(--background);
+            color: var(--text);
             line-height: 1.6;
-            color: #333;
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f9f9f9;
+            padding: 2rem;
         }
-        h1 {
-            color: #2c3e50;
-            text-align: center;
-            margin-bottom: 30px;
-        }
+
         .container {
-            background: white;
-            border-radius: 8px;
-            padding: 25px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
         }
+
+        .card {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
         textarea {
             width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
-            margin-bottom: 15px;
             min-height: 150px;
+            padding: 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 0.5rem;
             resize: vertical;
+            font-family: monospace;
+            transition: border-color 0.2s;
         }
-        button {
-            background: #3498db;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            font-size: 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            width: 100%;
-            transition: background 0.3s;
-            margin-bottom: 10px;
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
         }
-        button:hover {
-            background: #2980b9;
-        }
-        button.secondary {
-            background: #95a5a6;
-        }
-        button.secondary:hover {
-            background: #7f8c8d;
-        }
-        .result-area {
-            margin-top: 25px;
-            padding: 20px;
-            background: #f0f8ff;
-            border-radius: 4px;
-            border-left: 4px solid #3498db;
-        }
-        .settings {
-            margin: 20px 0;
-            padding: 15px;
-            background: #f5f5f5;
-            border-radius: 4px;
-        }
-        .error {
-            color: #e74c3c;
-            font-weight: bold;
-        }
-        .success {
-            color: #27ae60;
-        }
-        .key-candidate {
-            margin: 10px 0;
-            padding: 10px;
-            background: #fff;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-        }
-        .progress-container {
-            width: 100%;
-            background-color: #f1f1f1;
-            border-radius: 4px;
-            margin: 15px 0;
-        }
-        .progress-bar {
-            height: 20px;
-            background-color: #4CAF50;
-            border-radius: 4px;
-            width: 0%;
-            transition: width 0.3s;
-            text-align: center;
-            line-height: 20px;
-            color: white;
-        }
-        .settings-row {
+
+        .btn-group {
             display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
+            gap: 1rem;
             flex-wrap: wrap;
         }
-        .settings-group {
-            flex: 1;
-            min-width: 200px;
-            margin: 5px;
-        }
-        .key-length-info {
-            font-size: 14px;
-            color: #7f8c8d;
-            margin-top: 5px;
-        }
-        .analysis-method {
-            margin: 10px 0;
-            padding: 10px;
-            background: #fff;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-        }
-        .method-title {
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        .method-result {
-            margin-left: 15px;
-        }
-        .key-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 10px;
-            margin-top: 15px;
-        }
-        .key-option {
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+
+        button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            background: var(--primary);
+            color: white;
+            font-weight: 500;
             cursor: pointer;
             transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
-        .key-option:hover {
-            background: #eaf2f8;
-            border-color: #3498db;
+
+        button:hover {
+            background: var(--secondary);
         }
-        .key-option.selected {
-            background: #d4e6f1;
-            border-color: #2980b9;
+
+        button:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
         }
-        .tab {
-            overflow: hidden;
-            border: 1px solid #ccc;
-            background-color: #f1f1f1;
-            border-radius: 4px 4px 0 0;
+
+        .chart-container {
+            height: 300px;
+            margin: 2rem 0;
         }
-        .tab button {
-            background-color: inherit;
-            float: left;
-            border: none;
-            outline: none;
-            cursor: pointer;
-            padding: 10px 16px;
-            transition: 0.3s;
-            width: auto;
-            color: #333;
+
+        .result-section {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: #f1f5f9;
+            border-radius: 0.5rem;
         }
-        .tab button:hover {
-            background-color: #ddd;
+
+        .key-results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
         }
-        .tab button.active {
-            background-color: #3498db;
-            color: white;
-        }
-        .tabcontent {
-            display: none;
-            padding: 15px;
-            border: 1px solid #ccc;
-            border-top: none;
-            border-radius: 0 0 4px 4px;
+
+        .result-item {
             background: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border-left: 4px solid var(--primary);
         }
-        .tabcontent.active {
-            display: block;
+
+        .error {
+            color: var(--accent);
+            padding: 1rem;
+            margin: 1rem 0;
+            border: 2px solid var(--accent);
+            border-radius: 0.5rem;
+            background: #fef2f2;
         }
-        .stats-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 10px 0;
+
+        .hidden {
+            display: none;
         }
-        .stats-table th, .stats-table td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-        .stats-table th {
-            background-color: #f2f2f2;
-        }
-        .stats-table tr:nth-child(even) {
-            background-color: #f9f9f9;
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🔍 Advanced Vigenère Cipher Decoder</h1>
-        
-        <div class="settings">
-            <h3>Analysis Settings:</h3>
-            <div class="settings-row">
-                <div class="settings-group">
-                    <label for="keyLength">Max Key Length: <span id="keyLengthValue">15</span></label>
-                    <input type="range" id="keyLength" min="1" max="30" value="15" oninput="updateKeyLength()">
-                    <div class="key-length-info" id="keyLengthInfo">Will test 15 possible key lengths</div>
-                </div>
-                <div class="settings-group">
-                    <label for="analysisDepth">Analysis Depth:</label>
-                    <select id="analysisDepth" class="form-control">
-                        <option value="fast">Fast (basic methods)</option>
-                        <option value="normal" selected>Normal (all methods)</option>
-                        <option value="deep">Deep (full brute force)</option>
-                    </select>
-                </div>
+        <div class="card">
+            <h2>Vigenère Cipher Toolkit</h2>
+            <div class="input-group">
+                <textarea id="inputText" placeholder="Enter your text here..."></textarea>
             </div>
             
-            <div class="settings-row">
-                <div class="settings-group">
-                    <label>
-                        <input type="checkbox" id="useKasiski" checked> Use Kasiski Method
-                    </label>
-                </div>
-                <div class="settings-group">
-                    <label>
-                        <input type="checkbox" id="useFriedman" checked> Use Friedman Test
-                    </label>
-                </div>
-                <div class="settings-group">
-                    <label>
-                        <input type="checkbox" id="useBruteforce" checked> Use Brute Force
-                    </label>
-                </div>
+            <div class="input-group">
+                <label>Encryption Key:</label>
+                <input type="text" id="keyInput" class="input-field" placeholder="Enter key...">
             </div>
+
+            <div class="btn-group">
+                <button onclick="handleEncrypt()">🔒 Encrypt</button>
+                <button onclick="handleDecrypt()">🔓 Decrypt</button>
+                <button onclick="handleAnalyze()">🕵️ Auto Analyze</button>
+                <button onclick="clearAll()">🗑️ Clear</button>
+            </div>
+
+            <div id="errorMessage" class="error hidden"></div>
         </div>
 
-        <textarea id="ciphertext">OBKRUOXOGHULBSOLIFBBWFLRVQQPRNGKSSOTWTQSJQSSEKZZWATJKLUDIAWINFBNYPVTTMZFPKWGDKZXTJCDIGKUHUAUEKCAR</textarea>
-        
-        <button onclick="startFullAnalysis()">Run Full Analysis</button>
-        <button class="secondary" onclick="quickAnalyze()">Quick Analyze (Key Length Only)</button>
-        <button class="secondary" onclick="cancelAnalysis()" id="cancelButton" style="display: none;">Cancel</button>
-        
-        <div class="progress-container" id="progressContainer" style="display: none;">
-            <div class="progress-bar" id="progressBar">0%</div>
-        </div>
-        
-        <div class="result-area">
-            <div class="tab">
-                <button class="tablinks active" onclick="openTab(event, 'results')">Results</button>
-                <button class="tablinks" onclick="openTab(event, 'analysis')">Analysis</button>
-                <button class="tablinks" onclick="openTab(event, 'keyInfo')">Key Info</button>
-                <button class="tablinks" onclick="openTab(event, 'stats')">Statistics</button>
+        <div class="card">
+            <h3>Analysis Results</h3>
+            <div class="chart-container">
+                <canvas id="lengthChart"></canvas>
             </div>
-            
-            <div id="status">Ready. Enter ciphertext and click "Run Full Analysis".</div>
-            
-            <div id="results" class="tabcontent active">
-                <h3>Top Decryption Candidates:</h3>
-                <div id="result"></div>
-                <div id="candidates"></div>
+
+            <div class="result-section">
+                <h4>Probable Key Information</h4>
+                <div class="key-results">
+                    <div class="result-item">
+                        <div class="result-label">Key Length</div>
+                        <div class="result-value" id="bestLength">-</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-label">Suggested Key</div>
+                        <div class="result-value" id="suggestedKey">-</div>
+                    </div>
+                </div>
             </div>
-            
-            <div id="analysis" class="tabcontent">
-                <h3>Analysis Details:</h3>
-                <div id="analysisDetails"></div>
-            </div>
-            
-            <div id="keyInfo" class="tabcontent">
-                <h3>Possible Key Information:</h3>
-                <div id="keyDetails"></div>
-            </div>
-            
-            <div id="stats" class="tabcontent">
-                <h3>Text Statistics:</h3>
-                <div id="statistics"></div>
+
+            <div class="result-section">
+                <h4>Decrypted Text</h4>
+                <div id="decryptedText" class="decrypted-text">-</div>
             </div>
         </div>
     </div>
 
-    <script>
-        const languageFrequencies = {
-            'en': {
-                'name': 'English',
-                'letters': {
-                    'A': 8.167, 'B': 1.492, 'C': 2.782, 'D': 4.253, 'E': 12.702,
-                    'F': 2.228, 'G': 2.015, 'H': 6.094, 'I': 6.966, 'J': 0.153,
-                    'K': 0.772, 'L': 4.025, 'M': 2.406, 'N': 6.749, 'O': 7.507,
-                    'P': 1.929, 'Q': 0.095, 'R': 5.987, 'S': 6.327, 'T': 9.056,
-                    'U': 2.758, 'V': 0.978, 'W': 2.360, 'X': 0.150, 'Y': 1.974,
-                    'Z': 0.074
+<script>
+const ENGLISH_FREQ = [
+    8.2, 1.5, 2.8, 4.3, 12.7, 2.2, 2.0, 6.1, 7.0, 0.15,
+    0.77, 4.0, 2.4, 6.7, 7.5, 1.9, 0.095, 6.0, 6.3, 9.1,
+    2.8, 0.98, 2.4, 0.15, 2.0, 0.074
+];
+
+let chartInstance = null;
+
+// Core Functions
+function cleanText(text) {
+    return text.toUpperCase().replace(/[^A-Z]/g, '');
+}
+
+function vigenere(text, key, encrypt = true) {
+    const cleanedText = cleanText(text);
+    const cleanedKey = cleanText(key);
+    if (!cleanedKey.length) return '';
+    
+    return cleanedText.split('').map((c, i) => {
+        const textChar = c.charCodeAt(0) - 65;
+        const keyChar = cleanedKey[i % cleanedKey.length].charCodeAt(0) - 65;
+        const shift = encrypt ? keyChar : (26 - keyChar) % 26;
+        return String.fromCharCode((textChar + shift) % 26 + 65);
+    }).join('');
+}
+
+// Analysis Functions
+function analyzeFriedman(text) {
+    const n = text.length;
+    const freqs = new Array(26).fill(0);
+    
+    for (const c of text) {
+        freqs[c.charCodeAt(0) - 65]++;
+    }
+    
+    const sum = freqs.reduce((acc, val) => acc + val * (val - 1), 0);
+    const kp = 0.067; // English
+    const kr = 1/26;
+    
+    const friedman = (kp - kr) / ((sum / (n * (n - 1))) - kr);
+    return Math.round(friedman);
+}
+
+function analyzeIC(text) {
+    const n = text.length;
+    const freqs = new Array(26).fill(0);
+    
+    for (const c of text) {
+        freqs[c.charCodeAt(0) - 65]++;
+    }
+    
+    const sum = freqs.reduce((acc, val) => acc + val * (val - 1), 0);
+    const ic = sum / (n * (n - 1));
+    
+    // Find key length that would make average IC closest to English (0.0667)
+    const maxLength = Math.min(30, Math.floor(n / 2));
+    const results = [];
+    
+    for (let len = 1; len <= maxLength; len++) {
+        let totalIC = 0;
+        for (let i = 0; i < len; i++) {
+            const group = [];
+            for (let j = i; j < n; j += len) {
+                group.push(text[j]);
+            }
+            
+            const groupFreqs = new Array(26).fill(0);
+            for (const c of group) {
+                groupFreqs[c.charCodeAt(0) - 65]++;
+            }
+            
+            const groupSum = groupFreqs.reduce((acc, val) => acc + val * (val - 1), 0);
+            const groupIC = groupSum / (group.length * (group.length - 1));
+            totalIC += groupIC;
+        }
+        
+        const avgIC = totalIC / len;
+        const score = 1 - Math.abs(avgIC - 0.0667);
+        results.push([len, score]);
+    }
+    
+    return normalizeScores(new Map(results));
+}
+
+function analyzeKasiski(text) {
+    const seqMap = new Map();
+    for (let i = 0; i < text.length - 3; i++) {
+        const seq = text.substr(i, 3);
+        seqMap.set(seq, (seqMap.get(seq) || []).concat(i));
+    }
+
+    const factors = new Map();
+    for (const [seq, positions] of seqMap) {
+        if (positions.length > 1) {
+            for (let i = 1; i < positions.length; i++) {
+                const spacing = positions[i] - positions[i-1];
+                for (let len = 2; len <= Math.sqrt(spacing); len++) {
+                    if (spacing % len === 0) {
+                        factors.set(len, (factors.get(len) || 0) + 1);
+                        if (len !== spacing / len) {
+                            factors.set(spacing / len, (factors.get(spacing / len) || 0) + 1);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    return normalizeScores(factors);
+}
+
+function normalizeScores(scoresMap) {
+    const entries = Array.from(scoresMap.entries());
+    if (entries.length === 0) return [];
+    
+    const maxScore = Math.max(...entries.map(e => e[1]));
+    if (maxScore === 0) return [];
+    
+    return entries.map(([key, value]) => [key, value / maxScore]);
+}
+
+function combineResults(...results) {
+    const combined = new Map();
+    const methodCount = results.length;
+    
+    for (const result of results) {
+        for (const [key, score] of result) {
+            combined.set(key, (combined.get(key) || 0) + score);
+        }
+    }
+    
+    const sorted = Array.from(combined.entries())
+        .map(([key, score]) => [key, score / methodCount])
+        .sort((a, b) => b[1] - a[1]);
+    
+    return sorted;
+}
+
+function splitIntoGroups(text, length) {
+    const groups = Array(length).fill().map(() => []);
+    for (let i = 0; i < text.length; i++) {
+        groups[i % length].push(text[i]);
+    }
+    return groups;
+}
+
+function frequencyAnalysis(groups) {
+    return groups.map(group => {
+        const freqs = new Array(26).fill(0);
+        for (const c of group) {
+            freqs[c.charCodeAt(0) - 65]++;
+        }
+        
+        let bestShift = 0;
+        let bestScore = -Infinity;
+        
+        for (let shift = 0; shift < 26; shift++) {
+            let score = 0;
+            for (let i = 0; i < 26; i++) {
+                const shifted = (i + shift) % 26;
+                score += (freqs[shifted] / group.length) * (ENGLISH_FREQ[i] / 100);
+            }
+            
+            if (score > bestScore) {
+                bestScore = score;
+                bestShift = shift;
+            }
+        }
+        
+        return String.fromCharCode((26 - bestShift) % 26 + 65);
+    }).join('');
+}
+
+// Combined Analysis Methods
+async function analyzeKeyLengths(text) {
+    const methods = [
+        analyzeKasiski(text),
+        analyzeFriedman(text),
+        analyzeIC(text)
+    ];
+    
+    // Handle case where some methods return empty results
+    const validMethods = methods.filter(m => m.length > 0);
+    if (validMethods.length === 0) return [[3, 1]]; // Default if all methods fail
+    
+    return combineResults(...validMethods);
+}
+
+async function fullAnalysis(ciphertext) {
+    if (ciphertext.length < 100) throw new Error('Minimum 100 characters required for analysis');
+    
+    const lengthResults = await analyzeKeyLengths(ciphertext);
+    const bestLength = lengthResults[0][0];
+    
+    const groups = splitIntoGroups(ciphertext, bestLength);
+    const probableKey = frequencyAnalysis(groups);
+    const decrypted = vigenere(ciphertext, probableKey, false);
+    
+    return {
+        lengthResults,
+        bestLength,
+        probableKey,
+        decrypted,
+        groups
+    };
+}
+
+// UI Handlers
+function handleEncrypt() {
+    try {
+        const text = document.getElementById('inputText').value;
+        const key = document.getElementById('keyInput').value;
+        
+        if (!text) throw new Error('Please enter text to encrypt');
+        if (!key) throw new Error('Please enter an encryption key');
+        
+        const encrypted = vigenere(text, key, true);
+        document.getElementById('inputText').value = encrypted;
+        showError('Text encrypted successfully!', false);
+    } catch (error) {
+        showError(error.message);
+    }
+}
+
+function handleDecrypt() {
+    try {
+        const text = document.getElementById('inputText').value;
+        const key = document.getElementById('keyInput').value;
+        
+        if (!text) throw new Error('Please enter text to decrypt');
+        if (!key) throw new Error('Please enter a decryption key');
+        
+        const decrypted = vigenere(text, key, false);
+        document.getElementById('decryptedText').textContent = decrypted;
+        showError('Text decrypted successfully!', false);
+    } catch (error) {
+        showError(error.message);
+    }
+}
+
+async function handleAnalyze() {
+    try {
+        showLoading(true);
+        const ciphertext = cleanText(document.getElementById('inputText').value);
+        if (!ciphertext) throw new Error('Please enter some text to analyze');
+        
+        const analysis = await fullAnalysis(ciphertext);
+        updateResultsUI(analysis);
+        renderChart(analysis.lengthResults);
+        showError('Analysis completed successfully!', false);
+    } catch (error) {
+        showError(error.message);
+    } finally {
+        showLoading(false);
+    }
+}
+
+function clearAll() {
+    document.getElementById('inputText').value = '';
+    document.getElementById('keyInput').value = '';
+    document.getElementById('bestLength').textContent = '-';
+    document.getElementById('suggestedKey').textContent = '-';
+    document.getElementById('decryptedText').textContent = '-';
+    document.getElementById('errorMessage').classList.add('hidden');
+    
+    if (chartInstance) {
+        chartInstance.destroy();
+        chartInstance = null;
+    }
+}
+
+function renderChart(results) {
+    const ctx = document.getElementById('lengthChart').getContext('2d');
+    
+    if (chartInstance) chartInstance.destroy();
+    
+    chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: results.map(r => r[0]),
+            datasets: [{
+                label: 'Key Length Probability',
+                data: results.map(r => r[1] * 100),
+                backgroundColor: '#2563eb',
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: { display: true, text: 'Probability (%)' }
                 },
-                'bigrams': [
-                    'TH', 'HE', 'IN', 'ER', 'AN', 'RE', 'ON', 'AT',
-                    'EN', 'ND', 'TI', 'ES', 'OR', 'TE', 'OF', 'ED'
-                ],
-                'words': [
-                    'THE', 'AND', 'FOR', 'ARE', 'BUT', 'NOT', 'YOU', 'ALL',
-                    'ANY', 'CAN', 'HER', 'WAS', 'ONE', 'OUR', 'OUT', 'GET',
-                    'HIS', 'HAS', 'WHO', 'ITS', 'HAD', 'HOW', 'SHE', 'THEY'
-                ]
-            }
-        };
-
-        let currentAnalysis = null;
-        let worker = null;
-        let isWorking = false;
-        let isCanceled = false;
-
-        function updateKeyLength() {
-            const keyLength = parseInt(document.getElementById('keyLength').value);
-            document.getElementById('keyLengthValue').textContent = keyLength;
-            document.getElementById('keyLengthInfo').textContent = 
-                `Will test ${keyLength} possible key lengths`;
-        }
-
-        function openTab(evt, tabName) {
-            const tabcontents = document.getElementsByClassName("tabcontent");
-            for (let i = 0; i < tabcontents.length; i++) {
-                tabcontents[i].classList.remove("active");
-            }
-            
-            const tablinks = document.getElementsByClassName("tablinks");
-            for (let i = 0; i < tablinks.length; i++) {
-                tablinks[i].classList.remove("active");
-            }
-            
-            document.getElementById(tabName).classList.add("active");
-            evt.currentTarget.classList.add("active");
-        }
-
-        function cleanText(text) {
-            return text.toUpperCase().replace(/[^A-Z]/g, '');
-        }
-
-        function handleWorkerMessage(message) {
-            if (message.type === 'progress') {
-                document.getElementById('progressBar').style.width = message.progress + '%';
-                document.getElementById('progressBar').textContent = message.progress + '%';
-                document.getElementById('status').innerHTML = `Processing ${message.method}...`;
-            } else if (message.type === 'complete') {
-                currentAnalysis = message.analysis;
-                displayResults(currentAnalysis);
-                document.getElementById('progressContainer').style.display = 'none';
-                document.getElementById('cancelButton').style.display = 'none';
-                document.getElementById('status').innerHTML = `<span class="success">Analysis completed in ${((performance.now() - currentAnalysis.startTime)/1000).toFixed(2)}s</span>`;
-                isWorking = false;
-                isCanceled = false;
-            } else if (message.type === 'error') {
-                document.getElementById('status').innerHTML = `<span class="error">Error: ${message.message}</span>`;
-                isWorking = false;
+                x: {
+                    title: { display: true, text: 'Key Length' }
+                }
             }
         }
+    });
+}
 
-        function displayResults(analysis) {
-            const resultDiv = document.getElementById('result');
-            resultDiv.innerHTML = '';
-            
-            // Display top 5 results
-            analysis.results.slice(0, 5).forEach((result, index) => {
-                const html = `
-                    <div class="key-candidate">
-                        <h4>Candidate #${index + 1} (Score: ${result.score.toFixed(1)})</h4>
-                        <p><strong>Key:</strong> ${result.key} (Length: ${result.length}, Method: ${result.method})</p>
-                        <pre>${result.decrypted}</pre>
-                    </div>
-                `;
-                resultDiv.innerHTML += html;
-            });
+// UI Utilities
+function showLoading(show) {
+    const buttons = document.querySelectorAll('button');
+    buttons.forEach(btn => btn.disabled = show);
+}
 
-            // Display analysis details
-            const analysisDiv = document.getElementById('analysisDetails');
-            analysisDiv.innerHTML = analysis.analysisLog.map(log => `
-                <div class="analysis-method">
-                    <div class="method-title">${log.method}</div>
-                    <div class="method-result">${log.result}</div>
-                </div>
-            `).join('');
+function showError(message, isError = true) {
+    const errorEl = document.getElementById('errorMessage');
+    errorEl.textContent = message;
+    errorEl.classList.remove('hidden');
+    
+    if (isError) {
+        errorEl.style.color = 'var(--accent)';
+        errorEl.style.borderColor = 'var(--accent)';
+        errorEl.style.backgroundColor = '#fef2f2';
+    } else {
+        errorEl.style.color = 'var(--primary)';
+        errorEl.style.borderColor = 'var(--primary)';
+        errorEl.style.backgroundColor = '#eff6ff';
+    }
+    
+    setTimeout(() => errorEl.classList.add('hidden'), 5000);
+}
 
-            // Display key details
-            const keyDiv = document.getElementById('keyDetails');
-            keyDiv.innerHTML = analysis.keyCandidates.map(key => `
-                <div class="key-option">
-                    ${key.key} (Length: ${key.length}, Method: ${key.method})
-                </div>
-            `).join('');
+function updateResultsUI(analysis) {
+    document.getElementById('bestLength').textContent = analysis.bestLength;
+    document.getElementById('suggestedKey').textContent = analysis.probableKey;
+    document.getElementById('decryptedText').textContent = analysis.decrypted;
+}
 
-            // Display statistics
-            const statsDiv = document.getElementById('statistics');
-            statsDiv.innerHTML = `
-                <table class="stats-table">
-                    <tr><th>Total Characters</th><td>${analysis.ciphertext.length}</td></tr>
-                    <tr><th>Unique Characters</th><td>${new Set(analysis.ciphertext.split('')).size}</td></tr>
-                </table>
-            `;
-        }
-
-        function startFullAnalysis() {
-            if (isWorking) {
-                alert('Analysis already in progress!');
-                return;
-            }
-            
-            try {
-                // Reset UI
-                document.getElementById('result').innerHTML = '';
-                document.getElementById('analysisDetails').innerHTML = '';
-                document.getElementById('keyDetails').innerHTML = '';
-                document.getElementById('statistics').innerHTML = '';
-                document.getElementById('status').innerHTML = 'Initializing analysis...';
-                document.getElementById('progressContainer').style.display = 'block';
-                document.getElementById('cancelButton').style.display = 'inline-block';
-                document.getElementById('progressBar').style.width = '0%';
-                document.getElementById('progressBar').textContent = '0%';
-                
-                // Get and clean input
-                let ciphertext = document.getElementById('ciphertext').value;
-                ciphertext = cleanText(ciphertext);
-                
-                if (!ciphertext) {
-                    document.getElementById('status').innerHTML = '<span class="error">Please enter ciphertext!</span>';
-                    document.getElementById('progressContainer').style.display = 'none';
-                    return;
-                }
-                
-                // Get settings
-                const maxKeyLength = parseInt(document.getElementById('keyLength').value);
-                const analysisDepth = document.getElementById('analysisDepth').value;
-                const useKasiski = document.getElementById('useKasiski').checked;
-                const useFriedman = document.getElementById('useFriedman').checked;
-                const useBruteforce = document.getElementById('useBruteforce').checked;
-                const langSettings = languageFrequencies['en'];
-                
-                currentAnalysis = {
-                    ciphertext: ciphertext,
-                    maxKeyLength: maxKeyLength,
-                    analysisDepth: analysisDepth,
-                    useKasiski: useKasiski,
-                    useFriedman: useFriedman,
-                    useBruteforce: useBruteforce,
-                    langSettings: langSettings,
-                    startTime: performance.now(),
-                    keyLengthCandidates: [],
-                    keyCandidates: [],
-                    results: [],
-                    analysisLog: []
-                };
-                
-                isWorking = true;
-                isCanceled = false;
-                
-                // Web Worker implementation
-                if (window.Worker) {
-                    if (worker) worker.terminate();
-                    
-                    worker = new Worker(URL.createObjectURL(new Blob([
-                        `(${workerFunction.toString()})();`
-                    ], {type: 'application/javascript'})));
-                    
-                    worker.onmessage = function(e) {
-                        handleWorkerMessage(e.data);
-                    };
-                    
-                    worker.postMessage({
-                        type: 'start',
-                        analysis: currentAnalysis
-                    });
-                } else {
-                    // Fallback for browsers without Web Workers
-                    setTimeout(() => {
-                        try {
-                            performAnalysis(currentAnalysis);
-                            displayResults(currentAnalysis);
-                            document.getElementById('progressContainer').style.display = 'none';
-                            document.getElementById('status').innerHTML = `<span class="success">Analysis completed in ${((performance.now() - currentAnalysis.startTime)/1000).toFixed(2)}s</span>`;
-                            isWorking = false;
-                        } catch (error) {
-                            document.getElementById('status').innerHTML = `<span class="error">Error: ${error.message}</span>`;
-                            isWorking = false;
-                        }
-                    }, 100);
-                }
-            } catch (error) {
-                document.getElementById('status').innerHTML = `<span class="error">Error: ${error.message}</span>`;
-                isWorking = false;
-                if (worker) worker.terminate();
-            }
-        }
-
-        function cancelAnalysis() {
-            isCanceled = true;
-            if (worker) worker.terminate();
-            isWorking = false;
-            document.getElementById('progressContainer').style.display = 'none';
-            document.getElementById('cancelButton').style.display = 'none';
-            document.getElementById('status').innerHTML = '<span class="error">Analysis canceled!</span>';
-        }
-
-        function quickAnalyze() {
-            try {
-                const ciphertext = cleanText(document.getElementById('ciphertext').value);
-                const langSettings = languageFrequencies['en'];
-                const maxKeyLength = parseInt(document.getElementById('keyLength').value);
-                
-                const kasiskiResult = kasiskiExamination(ciphertext, maxKeyLength);
-                const friedmanResult = friedmanTest(ciphertext, maxKeyLength, langSettings);
-                const finalLengths = determineKeyLengths(kasiskiResult.concat(friedmanResult));
-                
-                document.getElementById('analysisDetails').innerHTML = `
-                    <div class="method-result">
-                        <h4>Quick Key Length Analysis:</h4>
-                        <p>Possible key lengths: ${finalLengths.join(', ')}</p>
-                        <p>Kasiski candidates: ${kasiskiResult.map(x => x.length).join(', ')}</p>
-                        <p>Friedman estimates: ${friedmanResult.map(x => x.length).join(', ')}</p>
-                    </div>
-                `;
-            } catch (error) {
-                document.getElementById('status').innerHTML = `<span class="error">Quick analysis failed: ${error.message}</span>`;
-            }
-        }
-
-        // Worker thread functions
-        function workerFunction() {
-            self.onmessage = function(e) {
-                if (e.data.type === 'start') {
-                    performAnalysis(e.data.analysis);
-                }
-            };
-
-            function performAnalysis(analysis) {
-                try {
-                    // Kasiski Examination
-                    if (analysis.useKasiski) {
-                        const kasiskiResult = kasiskiExamination(analysis.ciphertext, analysis.maxKeyLength);
-                        analysis.keyLengthCandidates = kasiskiResult;
-                        analysis.analysisLog.push({
-                            method: 'Kasiski',
-                            result: `Found key length candidates: ${kasiskiResult.map(x => x.length).join(', ')}`
-                        });
-                        self.postMessage({type: 'progress', method: 'Kasiski', progress: 20});
-                    }
-
-                    // Friedman Test
-                    if (analysis.useFriedman) {
-                        const friedmanResult = friedmanTest(analysis.ciphertext, analysis.maxKeyLength, analysis.langSettings);
-                        analysis.keyLengthCandidates = analysis.keyLengthCandidates.concat(friedmanResult);
-                        analysis.analysisLog.push({
-                            method: 'Friedman',
-                            result: `Estimated key lengths: ${friedmanResult.map(x => x.length).join(', ')}`
-                        });
-                        self.postMessage({type: 'progress', method: 'Friedman', progress: 40});
-                    }
-
-                    // Determine key lengths
-                    const finalKeyLengths = determineKeyLengths(analysis.keyLengthCandidates);
-                    analysis.analysisLog.push({
-                        method: 'Consensus',
-                        result: `Final key length candidates: ${finalKeyLengths.join(', ')}`
-                    });
-
-                    // Find key candidates
-                    const keys = findKeyCandidates(analysis.ciphertext, finalKeyLengths, analysis.langSettings);
-                    analysis.keyCandidates = keys;
-                    analysis.analysisLog.push({
-                        method: 'Key Search',
-                        result: `Generated ${keys.length} key candidates`
-                    });
-                    self.postMessage({type: 'progress', method: 'Key Search', progress: 60});
-
-                    // Brute force
-                    if (analysis.useBruteforce && analysis.analysisDepth === 'deep') {
-                        const bruteKeys = bruteForceKeys(analysis.ciphertext, analysis.maxKeyLength, analysis.langSettings);
-                        analysis.keyCandidates = analysis.keyCandidates.concat(bruteKeys);
-                        analysis.analysisLog.push({
-                            method: 'Brute Force',
-                            result: `Added ${bruteKeys.length} brute-forced keys`
-                        });
-                        self.postMessage({type: 'progress', method: 'Brute Force', progress: 80});
-                    }
-
-                    // Evaluate results
-                    analysis.results = evaluateKeys(analysis.ciphertext, analysis.keyCandidates, analysis.langSettings);
-                    analysis.analysisLog.push({
-                        method: 'Evaluation',
-                        result: `Evaluated ${analysis.results.length} possibilities`
-                    });
-
-                    self.postMessage({type: 'complete', analysis: analysis});
-                } catch (error) {
-                    self.postMessage({type: 'error', message: error.toString()});
-                }
-            }
-
-            function kasiskiExamination(ciphertext, maxKeyLength) {
-                const sequences = findRepeatedSequences(ciphertext, 3);
-                const distances = [];
-                
-                for (const seq in sequences) {
-                    const positions = sequences[seq];
-                    for (let i = 0; i < positions.length - 1; i++) {
-                        distances.push(positions[i+1] - positions[i]);
-                    }
-                }
-
-                const factorCounts = {};
-                for (const dist of distances) {
-                    const factors = getFactors(dist);
-                    factors.forEach(factor => {
-                        if (factor <= maxKeyLength) {
-                            factorCounts[factor] = (factorCounts[factor] || 0) + 1;
-                        }
-                    });
-                }
-
-                return Object.entries(factorCounts)
-                    .map(([length, count]) => ({ length: parseInt(length), count }))
-                    .sort((a, b) => b.count - a.count)
-                    .slice(0, 5);
-            }
-
-            function findRepeatedSequences(text, minLength) {
-                const sequences = {};
-                for (let i = 0; i <= text.length - minLength; i++) {
-                    const seq = text.substr(i, minLength);
-                    sequences[seq] = sequences[seq] || [];
-                    sequences[seq].push(i);
-                }
-                return Object.fromEntries(
-                    Object.entries(sequences).filter(([_, v]) => v.length > 1)
-                );
-            }
-
-            function getFactors(n) {
-                const factors = new Set();
-                for (let i = 2; i <= Math.sqrt(n); i++) {
-                    if (n % i === 0) {
-                        factors.add(i);
-                        factors.add(n/i);
-                    }
-                }
-                factors.add(n);
-                return Array.from(factors).filter(f => f >= 2).sort((a,b) => a-b);
-            }
-
-            function friedmanTest(ciphertext, maxKeyLength, langSettings) {
-                const ki = Object.values(langSettings.letters)
-                    .reduce((sum, freq) => sum + (freq/100)**2, 0);
-                const kr = 1/26;
-                const candidates = [];
-
-                for (let L = 1; L <= maxKeyLength; L++) {
-                    let sumIC = 0;
-                    for (let j = 0; j < L; j++) {
-                        const group = [];
-                        for (let i = j; i < ciphertext.length; i += L) {
-                            group.push(ciphertext[i]);
-                        }
-                        const freq = calculateFrequencies(group.join(''));
-                        sumIC += calculateIndexOfCoincidence(freq);
-                    }
-                    const avgIC = sumIC / L;
-                    const estL = (ki - kr) / (avgIC - kr);
-                    candidates.push({
-                        length: Math.round(estL),
-                        ic: avgIC,
-                        friedmanScore: Math.abs(L - estL)
-                    });
-                }
-
-                return candidates.sort((a, b) => a.friedmanScore - b.friedmanScore).slice(0,5);
-            }
-
-            function determineKeyLengths(candidates) {
-                const scores = {};
-                candidates.forEach(c => {
-                    scores[c.length] = (scores[c.length] || 0) + 
-                        (c.count ? c.count : 1/(1 + c.friedmanScore));
-                });
-                return Object.entries(scores)
-                    .sort((a, b) => b[1] - a[1])
-                    .slice(0,5)
-                    .map(([len]) => parseInt(len));
-            }
-
-            function findKeyCandidates(ciphertext, keyLengths, langSettings) {
-                const candidates = [];
-                for (const len of keyLengths) {
-                    const groups = Array.from({length: len}, () => []);
-                    for (let i = 0; i < ciphertext.length; i++) {
-                        groups[i % len].push(ciphertext[i]);
-                    }
-                    let keyOptions = [];
-                    groups.forEach(group => {
-                        const freq = calculateFrequencies(group.join(''));
-                        keyOptions.push(findBestShifts(freq, langSettings.letters, 3));
-                    });
-                    const combinations = cartesianProduct(keyOptions);
-                    combinations.forEach(shiftCombo => {
-                        const key = shiftCombo.map(s => String.fromCharCode(s + 65)).join('');
-                        candidates.push({ key, length: len, method: 'Frequency Analysis' });
-                    });
-                }
-                return candidates.slice(0, 1000);
-            }
-
-            function cartesianProduct(arrays) {
-                return arrays.reduce((acc, curr) =>
-                    acc.flatMap(x => curr.map(y => [...x, y])),
-                    [[]]
-                );
-            }
-
-            function findBestShifts(freqs, langFreq, topN) {
-                const shifts = [];
-                for (let shift = 0; shift < 26; shift++) {
-                    let score = 0;
-                    for (const c in freqs) {
-                        const decrypted = String.fromCharCode(
-                            ((c.charCodeAt(0) - 65 - shift + 26) % 26) + 65
-                        );
-                        score += (langFreq[decrypted] || 0) * freqs[c];
-                    }
-                    shifts.push({shift, score});
-                }
-                return shifts.sort((a, b) => b.score - a.score)
-                    .slice(0, topN)
-                    .map(x => x.shift);
-            }
-
-            function bruteForceKeys(ciphertext, maxKeyLength, langSettings) {
-                const candidates = [];
-                const letters = Object.keys(langSettings.letters);
-                if (maxKeyLength <= 3) {
-                    const maxCombinations = Math.min(26**maxKeyLength, 1000);
-                    for (let len = 1; len <= maxKeyLength; len++) {
-                        generateKeys('', len, letters, candidates, maxCombinations);
-                    }
-                }
-                return candidates;
-            }
-
-            function generateKeys(current, maxLen, letters, candidates, max) {
-                if (current.length === maxLen) {
-                    candidates.push({
-                        key: current,
-                        length: maxLen,
-                        method: 'Brute Force'
-                    });
-                    return;
-                }
-                for (const letter of letters) {
-                    if (candidates.length >= max) return;
-                    generateKeys(current + letter, maxLen, letters, candidates, max);
-                }
-            }
-
-            function evaluateKeys(ciphertext, keyCandidates, langSettings) {
-                return keyCandidates.map(candidate => {
-                    const decrypted = decryptVigenere(ciphertext, candidate.key);
-                    return {
-                        ...candidate,
-                        decrypted,
-                        score: evaluateDecryption(decrypted, langSettings)
-                    };
-                }).sort((a, b) => b.score - a.score);
-            }
-
-            function decryptVigenere(ciphertext, key) {
-                let decrypted = '';
-                const keyLen = key.length;
-                for (let i = 0; i < ciphertext.length; i++) {
-                    const c = ciphertext.charCodeAt(i) - 65;
-                    const k = key.charCodeAt(i % keyLen) - 65;
-                    decrypted += String.fromCharCode(((c - k + 26) % 26) + 65);
-                }
-                return decrypted;
-            }
-
-            function calculateFrequencies(text) {
-                const counts = {};
-                for (const c of text) {
-                    counts[c] = (counts[c] || 0) + 1;
-                }
-                const total = text.length;
-                return Object.fromEntries(
-                    Object.entries(counts).map(([k, v]) => [k, (v/total)*100])
-                );
-            }
-
-            function evaluateDecryption(text, langSettings) {
-                let score = 0;
-                const freq = calculateFrequencies(text);
-                
-                // Letter frequency
-                Object.entries(freq).forEach(([c, p]) => {
-                    score += (langSettings.letters[c] || 0) * p;
-                });
-
-                // Bigram check
-                for (let i = 0; i < text.length-1; i++) {
-                    if (langSettings.bigrams.includes(text.substr(i,2))) score += 5;
-                }
-
-                // Word check
-                langSettings.words.forEach(word => {
-                    const matches = text.match(new RegExp(word, 'g'));
-                    if (matches) score += 10 * word.length * matches.length;
-                });
-
-                // Penalties
-                ['QQ', 'ZZ', 'XX'].forEach(seq => {
-                    if (text.includes(seq)) score -= 20;
-                });
-
-                return score / (text.length / 100);
-            }
-
-            function calculateIndexOfCoincidence(frequencies) {
-                let sum = 0, total = 0;
-                Object.values(frequencies).forEach(count => {
-                    sum += count * (count - 1);
-                    total += count;
-                });
-                return total > 1 ? sum / (total * (total - 1)) : 0;
-            }
-        }
-    </script>
+// Initialization
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('inputText').addEventListener('input', e => {
+        // Don't clean automatically to allow for spaces/punctuation in input
+    });
+});
+</script>
 </body>
 </html>
